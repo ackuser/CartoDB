@@ -1,0 +1,14 @@
+{
+  "name": "cartodb",
+  "version": "1.0.0",
+  "description": "Technical Test from CartoDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "Karim Abdeselam Canales",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.13.4"
+  }
+}
