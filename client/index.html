@@ -16,10 +16,15 @@
     <!--<div>{{graph}}</div>-->
     <!-- <ext-svg data-content="{{graph}}"></ext-svg> -->
     <div ng-bind-html="graph"></div>
-    <div id="graph"></div>
+    <!-- <div id="graph"></div> -->
+    <?xml version="1.0" standalone="no"?>
+    <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+    <svg id="graph" viewBox="-6 -6 566.103150345036 780" style="fill-opacity:0.5; stroke:black; stroke-width:1; fill:none" xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+    </svg>
   </div>
   <script>
-        var socket = io();
+  var socket = io();
   // var socket = io.connect('https://localhost:3000/renderData');
   // socket.once('connect', function(data) {
   //   console.log(data);
@@ -27,12 +32,13 @@
   socket.emit('message', "test");
   socket.on('welcome', function(data) {
     console.log(data);
-            });
-    socket.on('svg', function (data) {
+  });
+  socket.on('svg', function (data) {
+    console.log("=========================================");
     console.log(data);
     // $('#graph').append(data).html();
 
-  //  socket.emit('join', 'Hello World from client');
+    //  socket.emit('join', 'Hello World from client');
     // socket.emit('my other event', { my: 'data' });
   });
   </script>

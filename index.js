@@ -12,19 +12,6 @@ var options = {
 var httpsServer = https.createServer(options, app);
 var io = require('socket.io')(httpsServer);
 
-
-function getData(callback) {
-
-  return https.get({
-    host: 'rambo-test.cartodb.com',
-    port: 443,
-    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.mnmappluto'
-    // path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
-  }, function(response) {
-    callback(null, response);
-  })
-}
-
 // Add headers
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
@@ -42,57 +29,104 @@ app.get('/', function(req, res){
 io
 .on('connection', function (socket) {
   socket.on('message', function(msg){
-   console.log("Hello Socketio " + msg)
+    console.log("Hello Socketio " + msg)
   });
 })
 
 app.get('/data', function (req, res) {
   var start = new Date()
-
-  // var tmpFile = "/tmp/somefilename.doc";
-  // var ws = fs.createWriteStream(tmpFile);
-  // var render =
-  // .of('/renderData')
   io
   .emit('welcome', { message: 'Welcome!' });
-  // .on('connection', function (socket) {
-    // socket.
-    // process.nextTick(function(){
-    getData(function(error,response){
-      debugger
-      debugger
-      // res.send(getData());
-      // console.log("Sending data")
-      var body = '';
-      response
-      .setEncoding('utf8')
-      .on('error', function(err) {
-        console.error(err.stack);
-      })
-      .on('data', function(chunk) {
-        body += chunk;
-        // req.pipe(body)
-        // res.write(chunk);
+  getData(function(error,response){
+    var body = '',
+    first = true;
 
-        // io.on('connection', function (socket) {
-        // setTimeout(function () {
-        io.emit('svg', chunk);
-        // }, 0)
-        // });
-      })
-      .on('end', function() {
-        // res.send(body)
-        // res.writeHead(response.statusCode);
-        res.end();
-        var end = new Date() - start;
-        console.info("Execution time: %ds", end / 1000);
-      })
-      //NOW I CAN PIPE
-    });
-  // })
-  // });
+    response
+    .setEncoding('utf8')
+    .on('error', function(err) {
+      console.error(err.stack);
+    })
+    .on('data', function(chunk) {
+      body += chunk;
+      // req.pipe(body)
+      // res.write(chunk);
+      // io.emit('svg', chunk)
+      // debugger
+      //  chunk.substring(chunk.length -10 , chunk.length)
+      body = processChunkSvg(body,first)
+      first = false;
+    })
+    .on('end', function() {
+      // res.send(body)
+      // res.writeHead(response.statusCode);
+      res.end();
+      var end = new Date() - start;
+      console.info("Execution time: %ds", end / 1000);
+    })
+  });
 });
 
 httpsServer.listen(3000, function () {
   console.log("server running at https://localhost:3000/")
 });
+
+function getData(callback) {
+
+  return https.get({
+    host: 'rambo-test.cartodb.com',
+    port: 443,
+    // path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.mnmappluto'
+    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
+  }, function(response) {
+    callback(null, response);
+  })
+}
+
+//MARCAR ALGUN THROW & ERRORS!!!
+function processChunkSvg(chunk,first) {
+  // debugger
+  // console.log("\n\n"+chunk+"\n\n");
+  var path = chunk.substring(0,5) == "<path" ? true : false
+  var elementsSvg = chunk.split("<path");
+  var restChunk = ''
+  if(first){
+    restChunk = processChunkSvgHeader(elementsSvg)
+  }
+  else if (!checkIfPath(elementsSvg,path)) {
+    debugger
+    console.log("MAS DE 1");
+    restChunk = processChunkSvgElement(elementsSvg);
+  }
+  else if (checkIfPath(elementsSvg,path)) {
+    var path = '<path' + elementsSvg[1]
+    console.log(path);
+    restChunk = path
+  }
+  else if (!checkIfPath(elementsSvg,path)) {
+    var content = elementsSvg[1]
+    console.log(content);
+    restChunk = content
+  }
+  return restChunk
+}
+
+function processChunkSvgHeader(elementsSvg) {
+  var header = elementsSvg.shift()
+  console.log(header);
+  io.emit('svg', header)
+  return "<path" + elementsSvg[0]
+}
+
+function processChunkSvgElement(elementsSvg) {
+  elementsSvg.shift()
+  var length = elementsSvg.length
+  var last = elementsSvg.slice(length - 1, length)
+  elementsSvg[0] = '<path' + elementsSvg[0]
+  var content = elementsSvg.slice(0,length - 1).join('<path')
+  io.emit('svg', content)
+  return '<path' + last
+}
+
+function checkIfPath(elementsSvg,path) {
+  return elementsSvg.length == 2 && path && elementsSvg[0] == ''
+}
