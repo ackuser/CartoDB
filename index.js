@@ -21,6 +21,7 @@ app.use(function (req, res, next) {
 });
 
 app.use("/app.js", express.static(__dirname + '/client/app.js'));
+app.use("/style.css", express.static(__dirname + '/client/style.css'));
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/client/index.html');
@@ -49,7 +50,7 @@ app.get('/data', function (req, res) {
     .on('data', function(chunk) {
       body += chunk;
       // req.pipe(body)
-      // res.write(chunk);
+      res.write(chunk);
       // io.emit('svg', chunk)
       // debugger
       //  chunk.substring(chunk.length -10 , chunk.length)
@@ -59,6 +60,7 @@ app.get('/data', function (req, res) {
     .on('end', function() {
       // res.send(body)
       // res.writeHead(response.statusCode);
+      // processChunkSvgEnd()
       res.end();
       var end = new Date() - start;
       console.info("Execution time: %ds", end / 1000);
@@ -75,8 +77,8 @@ function getData(callback) {
   return https.get({
     host: 'rambo-test.cartodb.com',
     port: 443,
-    // path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.mnmappluto'
-    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
+    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.mnmappluto'
+    // path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
   }, function(response) {
     callback(null, response);
   })
@@ -85,26 +87,28 @@ function getData(callback) {
 //MARCAR ALGUN THROW & ERRORS!!!
 function processChunkSvg(chunk,first) {
   // debugger
-  // console.log("\n\n"+chunk+"\n\n");
   var path = chunk.substring(0,5) == "<path" ? true : false
   var elementsSvg = chunk.split("<path");
   var restChunk = ''
+  // console.log("|" + chunk + "|");
   if(first){
     restChunk = processChunkSvgHeader(elementsSvg)
   }
   else if (!checkIfPath(elementsSvg,path)) {
-    debugger
-    console.log("MAS DE 1");
+    // console.info("MAS DE 1");
     restChunk = processChunkSvgElement(elementsSvg);
+    // if (restChunk.toString().indexOf("</svg>")) {
+      debugger
+      // console.log(restChunk);
+      // console.log(restChunk.substring(restChunk.length - 4,restChunk.length))
+    // }
   }
   else if (checkIfPath(elementsSvg,path)) {
     var path = '<path' + elementsSvg[1]
-    console.log(path);
     restChunk = path
   }
   else if (!checkIfPath(elementsSvg,path)) {
     var content = elementsSvg[1]
-    console.log(content);
     restChunk = content
   }
   return restChunk
@@ -113,7 +117,7 @@ function processChunkSvg(chunk,first) {
 function processChunkSvgHeader(elementsSvg) {
   var header = elementsSvg.shift()
   console.log(header);
-  io.emit('svg', header)
+  // io.emit('svg', header)
   return "<path" + elementsSvg[0]
 }
 
@@ -123,8 +127,13 @@ function processChunkSvgElement(elementsSvg) {
   var last = elementsSvg.slice(length - 1, length)
   elementsSvg[0] = '<path' + elementsSvg[0]
   var content = elementsSvg.slice(0,length - 1).join('<path')
+  // console.log(content)
   io.emit('svg', content)
   return '<path' + last
+}
+
+function processChunkSvgEnd() {
+  io.emit('svg', '</svg>')
 }
 
 function checkIfPath(elementsSvg,path) {
