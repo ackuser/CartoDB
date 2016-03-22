@@ -9,8 +9,8 @@ angular
         });
     };
   }])
-.service('APIService', function($http) {
-  var url = 'https://localhost:3000/data';
+.service('APIService', function($http, $location) {
+  var url = 'https://' + $location.host() + ':3000/data';
 
   function getDataSet() {
         return $http.get(url)
