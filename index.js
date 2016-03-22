@@ -15,8 +15,12 @@ app.get('/', function (req, res) {
 
 app.get('/data', function (req, res) {
   // res.send(getData());
+  var start = new Date()
   getData(function(data){
-    console.log(data)
+    // console.log("Sending data")
+    res.send(data)
+    var end = new Date() - start;
+    console.info("Execution time: %ds", end / 1000);
   });
 });
 
@@ -32,7 +36,7 @@ function getData(callback) {
   return https.get({
     host: 'rambo-test.cartodb.com',
     port: 443,
-    path: '/api/v2/sql?q=select%20*%20from%20public.north_america_adm0'
+    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
   }, function(response) {
     // Continuously update stream with data
     var body = '';
