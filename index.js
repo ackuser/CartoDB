@@ -1,61 +1,16 @@
+
 var https = require('https');
 var fs = require('fs');
+var express = require('express');
+var app = express();
 
 var options = {
   key: fs.readFileSync(__dirname + '/key.pem'),
   cert: fs.readFileSync(__dirname + '/cert.pem')
 };
 
-var express = require('express');
-var app = express();
-
-// Add headers
-app.use(function (req, res, next) {
-    // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    // Pass to next layer of middleware
-    next();
-});
-
-app.get('/', function (req, res) {
-  res.send('Hello World!');
-});
-
-app.get('/data', function (req, res) {
-  // res.send(getData());
-  var start = new Date()
-
-  // var tmpFile = "/tmp/somefilename.doc";
-  // var ws = fs.createWriteStream(tmpFile);
-  getData(function(error,response){
-    // console.log("Sending data")
-    var body = '';
-    response
-    .setEncoding('utf8')
-    .on('error', function(err) {
-      console.error(err.stack);
-    })
-    .on('data', function(chunk) {
-      body += chunk;
-      // req.pipe(body)
-      res.write(chunk);
-    })
-    .on('end', function() {
-      // res.send(body)
-      // res.writeHead(response.statusCode);
-      res.end();
-      var end = new Date() - start;
-      console.info("Execution time: %ds", end / 1000);
-      })
-    //NOW I CAN PIPE
-  });
-});
-
 var httpsServer = https.createServer(options, app);
-
-httpsServer.listen(3000, function () {
-  console.log("server running at https://localhost:3000/")
-});
+var io = require('socket.io')(httpsServer);
 
 
 function getData(callback) {
@@ -70,4 +25,74 @@ function getData(callback) {
   })
 }
 
-// getData();
+// Add headers
+app.use(function (req, res, next) {
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Pass to next layer of middleware
+  next();
+});
+
+app.use("/app.js", express.static(__dirname + '/client/app.js'));
+
+app.get('/', function(req, res){
+  res.sendFile(__dirname + '/client/index.html');
+});
+
+io
+.on('connection', function (socket) {
+  socket.on('message', function(msg){
+   console.log("Hello Socketio " + msg)
+  });
+})
+
+app.get('/data', function (req, res) {
+  var start = new Date()
+
+  // var tmpFile = "/tmp/somefilename.doc";
+  // var ws = fs.createWriteStream(tmpFile);
+  // var render =
+  // .of('/renderData')
+  io
+  .emit('welcome', { message: 'Welcome!' });
+  // .on('connection', function (socket) {
+    // socket.
+    // process.nextTick(function(){
+    getData(function(error,response){
+      debugger
+      debugger
+      // res.send(getData());
+      // console.log("Sending data")
+      var body = '';
+      response
+      .setEncoding('utf8')
+      .on('error', function(err) {
+        console.error(err.stack);
+      })
+      .on('data', function(chunk) {
+        body += chunk;
+        // req.pipe(body)
+        // res.write(chunk);
+
+        // io.on('connection', function (socket) {
+        // setTimeout(function () {
+        io.emit('svg', chunk);
+        // }, 0)
+        // });
+      })
+      .on('end', function() {
+        // res.send(body)
+        // res.writeHead(response.statusCode);
+        res.end();
+        var end = new Date() - start;
+        console.info("Execution time: %ds", end / 1000);
+      })
+      //NOW I CAN PIPE
+    });
+  // })
+  // });
+});
+
+httpsServer.listen(3000, function () {
+  console.log("server running at https://localhost:3000/")
+});

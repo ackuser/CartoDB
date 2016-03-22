@@ -3,17 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <title>CartoDB</title>
-  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.1/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.1/angular.min.js"></script>
   <script src="app.js"></script>
+  <!-- <script src="/socket.io/socket.io.js"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 </head>
 <body ng-app="cartoDB">
   <div id="simple" ng-controller="MyController">
-  <p>Click the button to render the dataset in the browser</p>
-  <button ng-click="renderGraph();">Start</button>
-  <!--<div>{{graph}}</div>-->
-  <!-- <ext-svg data-content="{{graph}}"></ext-svg> -->
-  <div ng-bind-html="graph"></div>
-</div>
+    <p>Click the button to render the dataset in the browser</p>
+    <button ng-click="renderGraph();">Start</button>
+    <!--<div>{{graph}}</div>-->
+    <!-- <ext-svg data-content="{{graph}}"></ext-svg> -->
+    <div ng-bind-html="graph"></div>
+    <div id="graph"></div>
+  </div>
+  <script>
+        var socket = io();
+  // var socket = io.connect('https://localhost:3000/renderData');
+  // socket.once('connect', function(data) {
+  //   console.log(data);
+  // });
+  socket.emit('message', "test");
+  socket.on('welcome', function(data) {
+    console.log(data);
+            });
+    socket.on('svg', function (data) {
+    console.log(data);
+    // $('#graph').append(data).html();
+
+  //  socket.emit('join', 'Hello World from client');
+    // socket.emit('my other event', { my: 'data' });
+  });
+  </script>
 </body>
 </html>
 <!-- A PARTIR DEL INDEX6!!!!-->

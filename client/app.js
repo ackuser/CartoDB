@@ -4,7 +4,7 @@ angular
 .controller('MyController', ['$scope', '$sce', 'APIService', function($scope, $sce, APIService) {
     $scope.renderGraph = function() {
       APIService.getDataSet().then(function(data) {
-          $scope.graph = $sce.trustAsHtml(data)
+          // $scope.graph = $sce.trustAsHtml(data)
           // console.log($scope.graph)
         });
     };
