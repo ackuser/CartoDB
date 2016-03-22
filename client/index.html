@@ -3,90 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <title>CartoDB</title>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.1/angular.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.js"></script>
-  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-  <script src="https://timmywil.github.io/jquery.panzoom/dist/jquery.panzoom.js"></script>
+  <script src="angular.min.js"></script>
+  <script src="socket.io.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="jquery.panzoom.min.js"></script>
   <script src="app.js"></script>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body ng-app="cartoDB">
   <div id="simple" ng-controller="MyController">
     <button id="start" class="btn btn-warning" ng-click="renderGraph();">Start</button>
+    <button id="resetall" class="btn btn-danger btn-sm pull-right">Reset All</button>
     <p>Click the button to render the dataset in the browser</p>
     <div id="graph">
       <svg id="svgwrapper" viewBox="-6 -6 566.103150345036 780" style="fill-opacity:0.5; stroke:black; stroke-width:1; fill:none" xmlns="http://www.w3.org/2000/svg" version="1.1">
       </svg>
     </div>
     <section class="controls">
-        <button class="btn btn-success btn-sm zoom-in">Zoom In</button>
-        <button class="btn btn-danger btn-sm reset">Reset</button>
-        <button class="btn btn-success btn-sm zoom-out">Zoom Out</button>
+      <button class="btn btn-success btn-sm zoom-in">Zoom In</button>
+      <button class="btn btn-danger btn-sm reset">Reset</button>
+      <button class="btn btn-success btn-sm zoom-out">Zoom Out</button>
     </section>
     <p>
-     <a class="panUp btn btn-primary">&lt;</a>
-     <a class="panDown btn btn-primary">&gt;</a>
-     <a class="panLeft btn btn-primary">&lt;</a>
-     <a class="panRight btn btn-primary">&gt;</a>
+      <a class="panUp btn btn-primary">&lt;</a>
+      <a class="panDown btn btn-primary">&gt;</a>
+      <a class="panLeft btn btn-primary">&lt;</a>
+      <a class="panRight btn btn-primary">&gt;</a>
     </p>
   </div>
   <script>
+  // Init socket
   var socket = io();
   socket.emit('message', "test");
   socket.on('welcome', function(data) {
     console.log(data);
   });
+  // Sendering svg from a streaming pipe through socketio
   socket.on('svg', function (data) {
-     var newsvg = document.getElementById("svgwrapper");
+    var newsvg = document.getElementById("svgwrapper");
     newsvg.insertAdjacentHTML('beforeend', data);
   });
+  // Init pan and zoom
   $("#graph").panzoom({
     $zoomIn: $(".zoom-in"),
     $zoomOut: $(".zoom-out"),
     $zoomRange: $(".zoom-range"),
     $reset: $(".reset")
-});
-
-$('.left').click(function () {
+  });
+  // Zooming control
+  $('.left').click(function () {
     $("#graph").panzoom("goTo", true);
-});
-
-$('.right').click(function () {
+  });
+  // Reset zoom control
+  $('.right').click(function () {
     $("#graph").panzoom("resetPan", true);
-});
-
-$('.panUp').click(function () {
+  });
+  // Up control
+  $('.panUp').click(function () {
     $("#graph").panzoom("pan", 0, 250, {
-        relative: true,
-        animate: true
+      relative: true,
+      animate: true
     });
-});
-
-$('.panDown').click(function () {
+  });
+  // Down control
+  $('.panDown').click(function () {
     $("#graph").panzoom("pan", 0, -250, {
-        relative: true,
-        animate: true
+      relative: true,
+      animate: true
     });
-});
-
-$('.panLeft').click(function () {
+  });
+  // Left control
+  $('.panLeft').click(function () {
     $("#graph").panzoom("pan", 250, 0, {
-        relative: true,
-        animate: true
+      relative: true,
+      animate: true
     });
-});
-
-$('.panRight').click(function () {
+  });
+  // Right control
+  $('.panRight').click(function () {
     $("#graph").panzoom("pan", -250, 0, {
-        relative: true,
-        animate: true
+      relative: true,
+      animate: true
     });
-});
-
-$(window).on('resize', function() {
-  $("#graph").panzoom('resetDimensions');
-});
+  });
+  // Reset All control
+  $('#resetall').click(function() {
+    location.reload();
+  });
+  // If windows is resized it is going to reset all the dimensions
+  $(window).on('resize', function() {
+    $("#graph").panzoom('resetDimensions');
+  });
 
   </script>
 </body>

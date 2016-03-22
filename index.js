@@ -4,6 +4,7 @@ var fs = require('fs');
 var express = require('express');
 var app = express();
 
+// HTTPS
 var options = {
   key: fs.readFileSync(__dirname + '/key.pem'),
   cert: fs.readFileSync(__dirname + '/cert.pem')
@@ -14,26 +15,25 @@ var io = require('socket.io')(httpsServer);
 
 // Add headers
 app.use(function (req, res, next) {
-  // Website you wish to allow to connect
   res.setHeader('Access-Control-Allow-Origin', '*');
-  // Pass to next layer of middleware
   next();
 });
 
+// Static Files
 app.use("/app.js", express.static(__dirname + '/client/app.js'));
 app.use("/style.css", express.static(__dirname + '/client/style.css'));
+app.use("/jquery.min.js", express.static(__dirname + '/bower_components/jquery/dist/jquery.min.js'));
+app.use("/jquery.panzoom.min.js", express.static(__dirname + '/bower_components/jquery.panzoom/dist/jquery.panzoom.min.js'));
+app.use("/angular.min.js", express.static(__dirname + '/bower_components/angular/angular.min.js'));
+app.use("/bootstrap.min.css", express.static(__dirname + '/bower_components/bootstrap/dist/css/bootstrap.min.css'));
+app.use("/socket.io.js", express.static(__dirname + '/node_modules/socket.io-client/socket.io.js'));
 
+// Index Files
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/client/index.html');
 });
 
-io
-.on('connection', function (socket) {
-  socket.on('message', function(msg){
-    console.log("Hello Socketio " + msg)
-  });
-})
-
+// Route data to retrieve dataset
 app.get('/data', function (req, res) {
   var start = new Date()
   io
@@ -49,42 +49,40 @@ app.get('/data', function (req, res) {
     })
     .on('data', function(chunk) {
       body += chunk;
-      // req.pipe(body)
-      res.write(chunk);
-      // io.emit('svg', chunk)
-      // debugger
-      //  chunk.substring(chunk.length -10 , chunk.length)
-      body = processChunkSvg(body,first)
+      try {
+        body = processChunkSvg(body,first)
+      } catch (err) {
+        console.error("Something was wrong with the parsing " + err)
+      }
       first = false;
     })
     .on('end', function() {
-      // res.send(body)
-      // res.writeHead(response.statusCode);
-      // processChunkSvgEnd()
       res.end();
       var end = new Date() - start;
-      console.info("Execution time: %ds", end / 1000);
+      console.info("Execution time for processing all the entiere dataset: %ds", end / 1000);
     })
   });
 });
 
+// Server listening
 httpsServer.listen(3000, function () {
   console.log("server running at https://localhost:3000/")
 });
 
+// API Request
 function getData(callback) {
 
   return https.get({
     host: 'rambo-test.cartodb.com',
     port: 443,
-    // path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.mnmappluto'
-    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
+    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.mnmappluto'
+    // path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
   }, function(response) {
     callback(null, response);
   })
 }
 
-//MARCAR ALGUN THROW & ERRORS!!!
+// Parsing svg data
 function processChunkSvg(chunk,first) {
   // debugger
   var path = chunk.substring(0,5) == "<path" ? true : false
@@ -107,13 +105,15 @@ function processChunkSvg(chunk,first) {
   return restChunk
 }
 
+// Parsing svg header
 function processChunkSvgHeader(elementsSvg) {
   var header = elementsSvg.shift()
-  console.log(header);
+  // console.log(header);
   // io.emit('svg', header)
   return "<path" + elementsSvg[0]
 }
 
+// Parsing svg tags
 function processChunkSvgElement(elementsSvg) {
   elementsSvg.shift()
   var length = elementsSvg.length
@@ -125,10 +125,12 @@ function processChunkSvgElement(elementsSvg) {
   return '<path' + last
 }
 
+// Ending up svg
 function processChunkSvgEnd() {
   io.emit('svg', '</svg>')
 }
 
+// Check if it is an element in svg
 function checkIfPath(elementsSvg,path) {
   return elementsSvg.length == 2 && path && elementsSvg[0] == ''
 }
