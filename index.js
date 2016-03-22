@@ -22,10 +22,10 @@ app.use(function (req, res, next) {
 // Static Files
 app.use("/app.js", express.static(__dirname + '/client/app.js'));
 app.use("/style.css", express.static(__dirname + '/client/style.css'));
-app.use("/jquery.min.js", express.static(__dirname + '/bower_components/jquery/dist/jquery.min.js'));
-app.use("/jquery.panzoom.min.js", express.static(__dirname + '/bower_components/jquery.panzoom/dist/jquery.panzoom.min.js'));
-app.use("/angular.min.js", express.static(__dirname + '/bower_components/angular/angular.min.js'));
-app.use("/bootstrap.min.css", express.static(__dirname + '/bower_components/bootstrap/dist/css/bootstrap.min.css'));
+app.use("/jquery.min.js", express.static(__dirname + '/client/bower_components/jquery/dist/jquery.min.js'));
+app.use("/jquery.panzoom.min.js", express.static(__dirname + '/client/bower_components/jquery.panzoom/dist/jquery.panzoom.min.js'));
+app.use("/angular.min.js", express.static(__dirname + '/client/bower_components/angular/angular.min.js'));
+app.use("/bootstrap.min.css", express.static(__dirname + '/client/bower_components/bootstrap/dist/css/bootstrap.min.css'));
 app.use("/socket.io.js", express.static(__dirname + '/node_modules/socket.io-client/socket.io.js'));
 
 // Index Files
@@ -59,7 +59,7 @@ app.get('/data', function (req, res) {
     .on('end', function() {
       res.end();
       var end = new Date() - start;
-      console.info("Execution time for processing all the entiere dataset: %ds", end / 1000);
+      console.info("Execution time for processing all the entire dataset in the back end: %ds", end / 1000);
     })
   });
 });

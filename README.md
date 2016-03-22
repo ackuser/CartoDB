@@ -58,8 +58,17 @@ Moreover, I have already configured all the dependecies on this project, so you 
 ```
 $ npm i && bower i
 ```
+```
+$ cd client
+```
+```
+$ bower i
+```
 ## Run the application
 
+```
+$ cd toCartoDB
+```
 ```
 $ node index.js
 ```
