@@ -4,64 +4,44 @@
   <meta charset="UTF-8">
   <title>CartoDB</title>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.1/angular.min.js"></script>
-  <script src="app.js"></script>
-  <!-- <script src="/socket.io/socket.io.js"></script> -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="https://timmywil.github.io/jquery.panzoom/dist/jquery.panzoom.js"></script>
+  <script src="app.js"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body ng-app="cartoDB">
   <div id="simple" ng-controller="MyController">
+    <button id="start" class="btn btn-warning" ng-click="renderGraph();">Start</button>
     <p>Click the button to render the dataset in the browser</p>
-    <button ng-click="renderGraph();">Start</button>
-    <!--<div>{{graph}}</div>-->
-    <!-- <ext-svg data-content="{{graph}}"></ext-svg> -->
-    <!-- <div ng-bind-html="graph"></div> -->
     <div id="graph">
-      <!-- <?xml version="1.0" standalone="no"?> -->
-      <!-- <!DOCTYPE svg PUBLIC graphW3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> -->
       <svg id="svgwrapper" viewBox="-6 -6 566.103150345036 780" style="fill-opacity:0.5; stroke:black; stroke-width:1; fill:none" xmlns="http://www.w3.org/2000/svg" version="1.1">
-      <!-- <svg id="svgwrapper" viewBox="-6 -6 1036 236.394333586883" style="fill-opacity:0.5; stroke:black; stroke-width:1; fill:none" xmlns="http://www.w3.org/2000/svg" version="1.1"> -->
       </svg>
     </div>
-    <section class="buttons">
-        <button class="btn btn-primary btn-sm zoom-in">Zoom In</button>
-        <button class="btn btn-primary btn-sm zoom-out">Zoom Out</button>
-        <div id="slider">
-          <input class="bar zoom-range" type="range" id="rangeinput" value="50" onchange="rangevalue.value=value" />
-          <span class="highlight"></span>
-          <output id="rangevalue">50</output>
-        </div>
-        <button class="pull-right btn btn-danger btn-sm reset">Reset</button>
+    <section class="controls">
+        <button class="btn btn-success btn-sm zoom-in">Zoom In</button>
+        <button class="btn btn-danger btn-sm reset">Reset</button>
+        <button class="btn btn-success btn-sm zoom-out">Zoom Out</button>
     </section>
-    <p> <a class="panLeft btn btn-primary">&lt;</a>
+    <p>
+     <a class="panUp btn btn-primary">&lt;</a>
+     <a class="panDown btn btn-primary">&gt;</a>
+     <a class="panLeft btn btn-primary">&lt;</a>
      <a class="panRight btn btn-primary">&gt;</a>
-
     </p>
   </div>
   <script>
   var socket = io();
-  // var socket = io.connect('https://localhost:3000/renderData');
-  // socket.once('connect', function(data) {
-  //   console.log(data);
-  // });
   socket.emit('message', "test");
   socket.on('welcome', function(data) {
     console.log(data);
   });
   socket.on('svg', function (data) {
-    // console.log("=========================================");
-    //  console.log(data);
      var newsvg = document.getElementById("svgwrapper");
-    // $('#graph svg').append(data);
     newsvg.insertAdjacentHTML('beforeend', data);
-
-    //  socket.emit('join', 'Hello World from client');
-    // socket.emit('my other event', { my: 'data' });
   });
-  $("#graph").delay(10000).panzoom({
+  $("#graph").panzoom({
     $zoomIn: $(".zoom-in"),
     $zoomOut: $(".zoom-out"),
     $zoomRange: $(".zoom-range"),
@@ -76,20 +56,38 @@ $('.right').click(function () {
     $("#graph").panzoom("resetPan", true);
 });
 
+$('.panUp').click(function () {
+    $("#graph").panzoom("pan", 0, 250, {
+        relative: true,
+        animate: true
+    });
+});
+
+$('.panDown').click(function () {
+    $("#graph").panzoom("pan", 0, -250, {
+        relative: true,
+        animate: true
+    });
+});
+
 $('.panLeft').click(function () {
-    $("#graph").panzoom("pan", -250, 0, {
+    $("#graph").panzoom("pan", 250, 0, {
         relative: true,
         animate: true
     });
 });
 
 $('.panRight').click(function () {
-    $("#graph").panzoom("pan", 250, 0, {
+    $("#graph").panzoom("pan", -250, 0, {
         relative: true,
         animate: true
     });
 });
+
+$(window).on('resize', function() {
+  $("#graph").panzoom('resetDimensions');
+});
+
   </script>
 </body>
 </html>
-<!-- SET NS FOR SVG Y HACER EL SET DEL HEIGHT AND WIDTH!!!!-->

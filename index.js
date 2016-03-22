@@ -77,8 +77,8 @@ function getData(callback) {
   return https.get({
     host: 'rambo-test.cartodb.com',
     port: 443,
-    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.mnmappluto'
-    // path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
+    // path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.mnmappluto'
+    path: '/api/v2/sql?format=SVG&q=select%20*%20from%20public.north_america_adm0'
   }, function(response) {
     callback(null, response);
   })
@@ -90,18 +90,11 @@ function processChunkSvg(chunk,first) {
   var path = chunk.substring(0,5) == "<path" ? true : false
   var elementsSvg = chunk.split("<path");
   var restChunk = ''
-  // console.log("|" + chunk + "|");
   if(first){
     restChunk = processChunkSvgHeader(elementsSvg)
   }
   else if (!checkIfPath(elementsSvg,path)) {
-    // console.info("MAS DE 1");
     restChunk = processChunkSvgElement(elementsSvg);
-    // if (restChunk.toString().indexOf("</svg>")) {
-      debugger
-      // console.log(restChunk);
-      // console.log(restChunk.substring(restChunk.length - 4,restChunk.length))
-    // }
   }
   else if (checkIfPath(elementsSvg,path)) {
     var path = '<path' + elementsSvg[1]
